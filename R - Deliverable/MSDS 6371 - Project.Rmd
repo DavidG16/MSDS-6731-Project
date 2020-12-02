@@ -19,26 +19,54 @@ library(ggplot2)
 library(car)
 library(data.table)
 library(mltools)
+
+# options
+#options(scipen = 999)
 ```
 
 
 
 ```{r message=FALSE, warning=FALSE}
-data = read_csv("../Data/train.csv")
-data
+data_train= read_csv("../Data/train.csv")
+data_test = read_csv("../Data/test.csv")
 #Convert <chr> to <fctr>
-data = as.data.frame(unclass(data))
-data
+data_train = as.data.frame(unclass(data_train))
+data_test = as.data.frame(unclass(data_test))
+data_test
 ```
 
 ```{r message=FALSE, warning=FALSE}
 
 # Select relevant columns and Neighborhood
-train_data_q1 = data %>% select(Id, GrLivArea, Neighborhood, SalePrice ) %>% filter(Neighborhood == "NAmes" | Neighborhood ==  "Edwards" | Neighborhood ==  "BrkSide") %>% droplevels()
+train_data_q1 = data_train %>% select(Id, GrLivArea, Neighborhood, SalePrice ) %>% filter(Neighborhood == "NAmes" | Neighborhood ==  "Edwards" | Neighborhood ==  "BrkSide") %>% droplevels()
+test_data_q1 = data_test  %>% select(Id, GrLivArea, Neighborhood ) %>% filter(Neighborhood == "NAmes" | Neighborhood ==  "Edwards" | Neighborhood ==  "BrkSide") %>% droplevels()
 train_data_q1
-train_data_q2 = data %>% select(Id, GrLivArea, Neighborhood, SalePrice ) 
-train_data_q2
+train_data_q2 = data_train %>% select(Id, GrLivArea, Neighborhood, SalePrice ) 
+train_data_q2$GrLivArea2 = train_data_q2$GrLivArea^2
+
+test_data_q2 = data_test %>% select(Id, GrLivArea, Neighborhood ) 
+test_data_q2$GrLivArea2 = test_data_q2$GrLivArea^2
+
 ```
+
+```{r}
+
+
+
+
+lm_fit_experiment = lm(SalePrice ~. -Id-Utilities-Street-PoolQC-MiscFeature-Alley-Fence-FireplaceQu-LotFrontage-GarageCond-GarageFinish-GarageQual-GarageType-GarageYrBlt-BsmtExposure-BsmtFinType2-BsmtCond-BsmtFinType1-BsmtQual-MasVnrArea-MasVnrType-Electrical  , data = train)
+lm_fit_experiment
+#Neighborhood_Blmngtn
+
+
+  
+
+
+summary(lm_fit_experiment)
+#confint(lm_fit_experiment,  level=0.995)
+
+```
+
 
 Question of interest
 Is the square footage of the living area and the neighborhood  related to the house sales price
@@ -66,7 +94,7 @@ hist_boxplot = function (data) {
 }
 
 press = function (model) {
-  pr = resid(lm_fit_q1)/(1 - lm.influence(lm_fit_q1)$hat)
+  pr = resid(model)/(1 - lm.influence(model)$hat)
   return(sum(pr^2))
 }
 
@@ -91,69 +119,51 @@ for (i in unlist(unique(data$Neighborhood)) ) {
 ```
 #	ANALYSIS 1
 ```{r message=FALSE, warning=FALSE}
-# One hot encode data
-#one_encode_train_data_q1 =  one_hot(as.data.table(train_data_q1, dropUnusedLevels=TRUE))
+one_encode_train_data_q1 =  one_hot(as.data.table(train_data_q1, dropUnusedLevels=TRUE))
 
-#Complete Fit
-# Neighborhood reference: Neighborhood_BrkSide
-#lm_fit_q1 = lm(SalePrice ~. -Id-Neighborhood_BrkSide, data = one_encode_train_data_q1)
-
-
-lm_fit_q1 = lm(SalePrice ~. -Id, data = train_data_q1)
+#Reference Neighborhood_BrkSide
+lm_fit_q1 = lm(SalePrice ~. -Id-Neighborhood_BrkSide+Neighborhood_Edwards*GrLivArea+Neighborhood_NAmes*GrLivArea, data = one_encode_train_data_q1)
 
 
 press(lm_fit_q1)
+ols_press(lm_fit_q1)
 
 
 summary(lm_fit_q1)
 confint(lm_fit_q1,  level=0.995)
 
+
+ols_plot_cooksd_bar(lm_fit_q1)
+ols_plot_dffits(lm_fit_q1)
+ols_plot_diagnostics(lm_fit_q1)
+
+ols_plot_resid_fit(lm_fit_q1)
+ols_plot_resid_pot(lm_fit_q1)
+ols_pred_rsq(lm_fit_q1)
+plot(lm_fit_q1)
+```
+
+```{r}
+lm_fit_q1$residuals
+
 ```
 
 
-
-
-```{r message=FALSE, warning=FALSE}
-
-RSS = c(crossprod(lm_fit_q1$residuals))
-MSE = RSS / length(lm_fit_q1$residuals)
-RMSE = sqrt(MSE)
-RMSE
-
-g1 = ggplot() + geom_histogram(aes(x=lm_fit_q1$residuals)) + ggtitle("Residuals Histogram")
-g2 = ggplot(lm_fit_q1,aes(sample=lm_fit_q1$residuals)) + geom_qq() + geom_qq_line()  + ggtitle("Residuals QQ Plot")
-g3 = ggplot(lm_fit_q1, aes(x=lm_fit_q1$fitted.values, y= lm_fit_q1$residuals)) + geom_point() +  geom_hline(yintercept=0) + xlab( "Predicted Value") + ylab("Residual") +  ggtitle("Residuals vs Predicted")
-figure =  ggarrange(g1, g2, g3, ncol=3)
-figure
-
-# https://www.statmethods.net/stats/rdiagnostics.html
-
-# Influence plot
-influencePlot(lm_fit_q1, id.method="identify", main="Influence Plot", sub="Circle size is proportial to Cook's Distance" )
-
-# Cook's D plot
-cutoff = 4/((nrow(one_encode_train_data_q1)-length(lm_fit_q1$coefficients)-2))
-plot(lm_fit_q1, which=4, cook.levels=cutoff)
-
-#Durbin Watson Test for Colliniarity
-durbinWatsonTest(lm_fit_q1)
-
-# Outlier test
-outlierTest(lm_fit_q1) # Bonferonni p-value for most extreme obs
-
-# Multi-collinearity variance inflation factors
-vif(lm_fit_q1)
-
-```
 
 
 #	ANALYSIS 2
 ```{r message=FALSE, warning=FALSE}
-# One hot encode data
+
 one_encode_train_data_q2 =  one_hot(as.data.table(train_data_q2, dropUnusedLevels=TRUE))
-one_encode_train_data_q2
-# Neighborhood reference: Neighborhood_NAmes
-lm_fit_q2 = lm(SalePrice ~. -Id -Neighborhood_NAmes, data = one_encode_train_data_q2)
+#lm_fit_q2 = lm(SalePrice ~. -Id-Neighborhood_BrkSide, data = one_encode_train_data_q2)
+
+#Neighborhood_Blmngtn
+
+
+lm_fit_q2 = lm(SalePrice ~. -Id-Neighborhood_Blmngtn+(Neighborhood_BrkSide*GrLivArea+Neighborhood_Blueste+Neighborhood_BrDale+Neighborhood_ClearCr+Neighborhood_CollgCr+Neighborhood_Crawfor+Neighborhood_Edwards+Neighborhood_Gilbert+Neighborhood_IDOTRR+Neighborhood_MeadowV+Neighborhood_Mitchel+Neighborhood_NAmes+Neighborhood_NPkVill+Neighborhood_NridgHt+Neighborhood_NWAmes+Neighborhood_OldTown+Neighborhood_Sawyer+Neighborhood_SawyerW+Neighborhood_Somerst+Neighborhood_StoneBr+Neighborhood_SWISU+Neighborhood_Timber+Neighborhood_Veenker)*GrLivArea+(Neighborhood_BrkSide+Neighborhood_Blueste+Neighborhood_BrDale+Neighborhood_ClearCr+Neighborhood_CollgCr+Neighborhood_Crawfor+Neighborhood_Edwards+Neighborhood_Gilbert+Neighborhood_IDOTRR+Neighborhood_MeadowV+Neighborhood_Mitchel+Neighborhood_NAmes+Neighborhood_NPkVill+Neighborhood_NridgHt+Neighborhood_NWAmes+Neighborhood_OldTown+Neighborhood_Sawyer+Neighborhood_SawyerW+Neighborhood_Somerst+Neighborhood_StoneBr+Neighborhood_SWISU+Neighborhood_Timber+Neighborhood_Veenker)*GrLivArea2, data = one_encode_train_data_q2)
+
+
+
 summary(lm_fit_q2)
 confint(lm_fit_q2,  level=0.995)
 ```
@@ -163,7 +173,24 @@ confint(lm_fit_q2,  level=0.995)
 #Stepwise Selection
 stepwise_fit = ols_step_both_p(lm_fit_q2, pent =0.05, prem=0.05,  details = F)
 stepwise_fit
+stepwise_model = stepwise_fit$model
+ols_press(stepwise_model)
+stepwise_model
+summary(stepwise_model)
+confint(stepwise_model)
 
+ols_plot_cooksd_bar(stepwise_model)
+
+stepwise_model_outliers = ols_plot_cooksd_bar(stepwise_model, print_plot=F)
+stepwise_model_outliers
+
+ols_plot_dffits(stepwise_model)
+ols_plot_diagnostics(stepwise_model)
+
+ols_plot_resid_fit(stepwise_model)
+ols_plot_resid_pot(stepwise_model)
+ols_pred_rsq(stepwise_model)
+plot(stepwise_fit)
 ```
 
 
@@ -171,47 +198,49 @@ stepwise_fit
 #Forward Selection
 fw_fit = ols_step_forward_p(lm_fit_q2, penter=0.05, details = F)
 fw_fit
+fw_model = fw_fit$model
+ols_press(fw_model)
+fw_model
+summary(fw_model)
+confint(fw_model)
+
+ols_plot_cooksd_bar(fw_model)
+
+
+fw_model_outliers = ols_plot_cooksd_bar(fw_model, print_plot=F)
+fw_model_outliers
+
+ols_plot_dffits(fw_model)
+ols_plot_diagnostics(fw_model)
+
+ols_plot_resid_fit(fw_model)
+ols_plot_resid_pot(fw_model)
+ols_pred_rsq(fw_model)
+plot(fw_fit)
 ```
 
 ```{r message=FALSE, warning=FALSE}
 #Backward Selection
 bw_fit = ols_step_backward_p(lm_fit_q2, penter=0.05, details = F)
 bw_fit
+bw_model = bw_fit$model
+ols_press(bw_model)
+bw_model
+summary(bw_model)
+confint(bw_model)
+
+ols_plot_cooksd_bar(bw_model)
+
+bw_model_outliers = ols_plot_cooksd_bar(bw_model, print_plot=F)
+bw_model_outliers
+
+ols_plot_dffits(bw_model)
+ols_plot_diagnostics(bw_model)
+
+ols_plot_resid_fit(bw_model)
+ols_plot_resid_pot(bw_model)
+ols_pred_rsq(bw_model)
+plot(bw_fit)
 
 ```
 
-
-```{r message=FALSE, warning=FALSE}
-
-RSS = c(crossprod(lm_fit_q2$residuals))
-MSE = RSS / length(lm_fit_q2$residuals)
-RMSE = sqrt(MSE)
-RMSE
-
-g1 = ggplot() + geom_histogram(aes(x=lm_fit_q2$residuals)) + ggtitle("Residuals Histogram")
-g2 = ggplot(lm_fit_q2,aes(sample=lm_fit_q2$residuals)) + geom_qq() + geom_qq_line()  + ggtitle("Residuals QQ Pl0t")
-g3 = ggplot(lm_fit_q2, aes(x=lm_fit_q2$fitted.values, y= lm_fit_q2$residuals)) + geom_point() +  geom_hline(yintercept=0) + xlab( "Predicted Value") + ylab("Residual") +  ggtitle("Residuals vs Predicted")
-figure =  ggarrange(g1, g2, g3, ncol=3)
-figure
-
-# https://www.statmethods.net/stats/rdiagnostics.html
-
-# Influence plot
-influencePlot(lm_fit_q2, id.method="identify", main="Influence Plot", sub="Circle size is proportial to Cook's Distance" )
-
-# Cook's D plot
-cutoff = 4/((nrow(one_encode_train_data_q2)-length(lm_fit_q2$coefficients)-2))
-plot(lm_fit_q2, which=4, cook.levels=cutoff)
-
-#Durbin Watson Test for Colliniarity
-durbinWatsonTest(lm_fit_q2)
-
-# Outlier test
-outlierTest(lm_fit_q2) # Bonferonni p-value for most extreme obs
-
-# Multi-collinearity variance inflation factors
-vif(lm_fit_q2)
-
-```
-
-```
