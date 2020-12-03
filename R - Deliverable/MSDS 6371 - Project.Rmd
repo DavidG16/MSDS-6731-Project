@@ -211,7 +211,7 @@ stepwise_predictions = c(predict(stepwise_model, newdata = one_encode_test_data_
 
 stepwise_submission = data.frame(Id= one_encode_test_data_q2$Id, SalePrice=stepwise_predictions)
 stepwise_submission
-write_csv(stepwise_submission, "../kaggleData/stepwiseSelectionPredictions.csv")
+#write_csv(stepwise_submission, "../kaggleData/stepwiseSelectionPredictions.csv")
 ```
 
 
@@ -258,7 +258,7 @@ fw_predictions = c(predict(fw_model, newdata = one_encode_test_data_q2))
 
 fw_submission = data.frame(Id= one_encode_test_data_q2$Id, SalePrice=fw_predictions)
 fw_submission
-write_csv(fw_submission, "../kaggleData/forward SelectionPredictions.csv")
+#write_csv(fw_submission, "../kaggleData/forward SelectionPredictions.csv")
 ```
 
 
@@ -301,7 +301,7 @@ bw_predictions
 
 bw_submission = data.frame(Id= one_encode_test_data_q2$Id, SalePrice=bw_predictions)
 bw_submission
-write_csv(bw_submission, "../kaggleData/backwardsSelectionPredictions.csv")
+#write_csv(bw_submission, "../kaggleData/backwardsSelectionPredictions.csv")
 ```
 
 
