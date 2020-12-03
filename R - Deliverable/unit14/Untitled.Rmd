@@ -1,0 +1,64 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute code within the notebook, the results appear beneath the code. 
+
+Try executing this chunk by clicking the *Run* button within the chunk or by placing your cursor inside it and pressing *Cmd+Shift+Enter*. 
+
+```{r}
+library(tidyverse)
+library(olsrr)
+```
+
+```{r}
+exclude_df = data.frame(x=c(1,2,3,4),y=c(2,3,3,3))
+include_df = data.frame(x=c(1,2,3,4,30),y=c(2,3,3,3,50))
+```
+
+
+````{r}
+exclude_fit = lm(y ~x, data=exclude_df)
+summary(exclude_fit)
+confint(exclude_fit)
+ols_plot_cooksd_bar(exclude_fit)
+ols_plot_diagnostics(exclude_fit)
+```
+````{r}
+include_fit = lm(y ~x, data=include_df)
+summary(include_fit)
+confint(include_fit)
+ols_plot_cooksd_bar(include_fit)
+ols_plot_diagnostics(include_fit)
+```
+```{r warning=FALSE}
+data = read_csv("/Users/dgrijalva/SMU/Classes/Term Fall 2020/Stats-Foundation/MSDS_6371_Stat_Foundations/Unit 14/SAT Data Set.csv")
+
+```
+```{r}
+fit = lm (Expend ~.-State, data = data)
+
+stepwise_fit = ols_step_both_p(fit, pent =0.05, prem=0.05,  details = F)
+stepwise_fit
+stepwise_model = stepwise_fit$model
+ols_press(stepwise_model)
+stepwise_model
+summary(stepwise_model)
+confint(stepwise_model)
+
+ols_plot_cooksd_bar(stepwise_model)
+
+stepwise_model_outliers = ols_plot_cooksd_bar(stepwise_model, print_plot=F)
+stepwise_model_outliers
+
+ols_plot_dffits(stepwise_model)
+ols_plot_diagnostics(stepwise_model)
+
+ols_plot_resid_fit(stepwise_model)
+ols_plot_resid_pot(stepwise_model)
+ols_pred_rsq(stepwise_model)
+plot(stepwise_fit)
+
+
+```

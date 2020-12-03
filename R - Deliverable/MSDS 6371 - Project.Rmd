@@ -12,7 +12,6 @@ knitr::opts_chunk$set(echo = TRUE)
 
 
 ```{r message=FALSE, warning=FALSE}
-library(olsrr)
 library(tidyverse)
 library(ggpubr)
 library(ggplot2)
@@ -32,8 +31,10 @@ data_train= read_csv("../Data/train.csv")
 data_test = read_csv("../Data/test.csv")
 #Convert <chr> to <fctr>
 data_train = as.data.frame(unclass(data_train))
+data_train$Neighborhood = as.factor(data_train$Neighborhood )
 data_test = as.data.frame(unclass(data_test))
-nrow(data_test)
+data_test$Neighborhood = as.factor(data_test$Neighborhood )
+head(data_train)
 ```
 
 ```{r message=FALSE, warning=FALSE}
@@ -63,7 +64,7 @@ nrow(test_data_q2)
   
 
 
-summary(lm_fit_experiment)
+#summary(lm_fit_experiment)
 #confint(lm_fit_experiment,  level=0.995)
 
 ```
@@ -123,7 +124,7 @@ for (i in unlist(unique(data_train$Neighborhood)) ) {
 one_encode_train_data_q1 =  one_hot(as.data.table(train_data_q1, dropUnusedLevels=TRUE))
 
 #Reference Neighborhood_BrkSide
-lm_fit_q1 = lm(SalePrice ~-Id- Neighborhood_BrkSide+ GrLivArea+Neighborhood_Edwards*GrLivArea+Neighborhood_NAmes*GrLivArea, data = one_encode_train_data_q1)
+lm_fit_q1 = lm(SalePrice ~-Id- Neighborhood_BrkSide+ GrLivArea+Neighborhood_Edwards+Neighborhood_NAmes+ Neighborhood_Edwards*GrLivArea+Neighborhood_NAmes*GrLivArea, data = one_encode_train_data_q1)
 
 
 press(lm_fit_q1)
