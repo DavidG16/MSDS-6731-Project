@@ -123,7 +123,7 @@ for (i in unlist(unique(data$Neighborhood)) ) {
 one_encode_train_data_q1 =  one_hot(as.data.table(train_data_q1, dropUnusedLevels=TRUE))
 
 #Reference Neighborhood_BrkSide
-lm_fit_q1 = lm(SalePrice ~. -Id-Neighborhood_BrkSide+Neighborhood_Edwards*GrLivArea+Neighborhood_NAmes*GrLivArea, data = one_encode_train_data_q1)
+lm_fit_q1 = lm(SalePrice ~-Id- Neighborhood_BrkSide+ GrLivArea+Neighborhood_Edwards*GrLivArea+Neighborhood_NAmes*GrLivArea, data = one_encode_train_data_q1)
 
 
 press(lm_fit_q1)
