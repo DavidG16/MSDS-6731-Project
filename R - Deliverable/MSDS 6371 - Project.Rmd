@@ -113,8 +113,8 @@ hist_boxplot(train_data_q2)
 ```
 
 ```{r message=FALSE, warning=FALSE}
-for (i in unlist(unique(data$Neighborhood)) ) {
-  print(scatter_func(data, i))
+for (i in unlist(unique(data_train$Neighborhood)) ) {
+  print(scatter_func(data_train, i))
 }
 
 ```
