@@ -305,4 +305,41 @@ bw_submission
 ```
 
 
+```{r message=FALSE, warning=FALSE}
+#Backward Selection
+custom_fit = ols_step_best_subset(lm_fit_q2,)
+custom_fit
+```
 
+```{r}
+custom_model = custom_fit$model
+ols_press(custom_model)
+summary(custom_model)
+confint(custom_model)
+```
+
+
+```{r}
+ols_plot_cooksd_bar(custom_model)
+
+custom_model_outliers = ols_plot_cooksd_bar(custom_model, print_plot=F)
+custom_model_outliers
+
+ols_plot_dffits(custom_model)
+ols_plot_diagnostics(custom_model)
+
+ols_plot_resid_fit(custom_model)
+ols_plot_resid_pot(custom_model)
+ols_pred_rsq(custom_model)
+plot(custom_fit)
+```
+
+```{r}
+
+custom_predictions = c(predict(custom_model, newdata = one_encode_test_data_q2))
+custom_predictions
+
+custom_submission = data.frame(Id= one_encode_test_data_q2$Id, SalePrice=custom_predictions)
+custom_submission
+#write_csv(custom_submission, "../kaggleData/customSelectionPredictions.csv")
+```
