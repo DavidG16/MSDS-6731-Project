@@ -34,7 +34,12 @@ data_train = as.data.frame(unclass(data_train))
 data_train$Neighborhood = as.factor(data_train$Neighborhood )
 data_test = as.data.frame(unclass(data_test))
 data_test$Neighborhood = as.factor(data_test$Neighborhood )
-head(data_train)
+# add new remodel variable
+data_train$Remodel =ifelse(data_train$YearBuilt==data_train$YearRemodAdd, 0, 1)
+data_test$Remodel =ifelse(data_test$YearBuilt==data_test$YearRemodAdd, 0, 1)
+summary(data_train)
+summary(data_test)
+
 ```
 
 ```{r message=FALSE, warning=FALSE}
@@ -42,14 +47,65 @@ head(data_train)
 # Select relevant columns and Neighborhood
 train_data_q1 = data_train %>% select(Id, GrLivArea, Neighborhood, SalePrice ) %>% filter(Neighborhood == "NAmes" | Neighborhood ==  "Edwards" | Neighborhood ==  "BrkSide") %>% droplevels()
 test_data_q1 = data_test  %>% select(Id, GrLivArea, Neighborhood ) %>% filter(Neighborhood == "NAmes" | Neighborhood ==  "Edwards" | Neighborhood ==  "BrkSide") %>% droplevels()
-train_data_q1
-train_data_q2 = data_train %>% select(Id, GrLivArea, Neighborhood, SalePrice ) 
+
+train_data_q2 = data_train %>% select(Id, GrLivArea, Neighborhood, LotArea, YrSold, SaleCondition, HouseStyle, KitchenQual, YearRemodAdd,GarageCars, PoolArea, Fireplaces,BsmtFullBath,BsmtHalfBath,FullBath,HalfBath,BedroomAbvGr,Remodel,OverallQual,  SalePrice)
 train_data_q2$GrLivArea2 = train_data_q2$GrLivArea^2
 
-test_data_q2 = data_test %>% select(Id, GrLivArea, Neighborhood ) 
+
+
+
+
+# 2.5Fin does not exist in test data so changing it to 1.5Unf
+train_data_q2$HouseStyle = as.character(train_data_q2$HouseStyle)
+train_data_q2 = train_data_q2 %>%   mutate_at(vars(HouseStyle) ,     ~ifelse(.x=="2.5Fin","1.5Unf",.x  ))
+
+train_data_q2$HouseStyle = as.factor(train_data_q2$HouseStyle)
+
+
+
+
+test_data_q2 = data_test %>%  select(Id, GrLivArea, Neighborhood, LotArea, YrSold, SaleCondition, HouseStyle, KitchenQual,  YearRemodAdd, GarageCars, PoolArea, Fireplaces,BsmtFullBath,BsmtHalfBath,FullBath,HalfBath,BedroomAbvGr, Remodel,OverallQual)
 test_data_q2$GrLivArea2 = test_data_q2$GrLivArea^2
-nrow(test_data_q2)
+
+
+
+
+
+
+test_data_q2$KitchenQual = as.character(test_data_q2$KitchenQual)
+test_data_q2 = test_data_q2 %>%   mutate_at(vars(KitchenQual) ,     ~ifelse(is.na(.x),"Ex",.x  ))
+test_data_q2$KitchenQual = as.factor(test_data_q2$KitchenQual)
+
+# Inpute = NA in test data
+test_data_q2= test_data_q2 %>% mutate_at(vars(GarageCars),~ifelse(is.na(.x), median(.x, na.rm = TRUE), .x))
+test_data_q2= test_data_q2 %>% mutate_at(vars(BsmtFullBath),~ifelse(is.na(.x), median(.x, na.rm = TRUE), .x))
+test_data_q2= test_data_q2 %>% mutate_at(vars(BsmtHalfBath),~ifelse(is.na(.x), median(.x, na.rm = TRUE), .x))
+
+
+
+summary(test_data_q2)
+#nrow(test_data_q2)
+unique(train_data_q2$HouseStyle)
+unique(test_data_q2$HouseStyle)
 ```
+
+```{r}
+
+#look for missing values
+missing.values <- test_data_q2 %>%
+    gather(key = "key", value = "val") %>%
+    mutate(is.missing = is.na(val)) %>%
+    group_by(key, is.missing) %>%
+    summarise(num.missing = n()) %>%
+    filter(is.missing==T) %>%
+    select(-is.missing) %>%
+    arrange(desc(num.missing))
+
+missing.values
+```
+
+
+
 
 ```{r}
 
@@ -145,22 +201,34 @@ ols_pred_rsq(lm_fit_q1)
 plot(lm_fit_q1)
 ```
 
-
-
-
+```{r}
+names(one_encode_train_data_q2)
+```
 
 
 #	ANALYSIS 2
 ```{r message=FALSE, warning=FALSE}
 
 one_encode_train_data_q2 =  one_hot(as.data.table(train_data_q2, dropUnusedLevels=TRUE))
+one_encode_train_data_q2
 one_encode_test_data_q2 =  one_hot(as.data.table(test_data_q2, dropUnusedLevels=TRUE))
-#lm_fit_q2 = lm(SalePrice ~. -Id-Neighborhood_BrkSide, data = one_encode_train_data_q2)
-
-#Neighborhood_Blmngtn
 
 
-lm_fit_q2 = lm(SalePrice ~.-GrLivArea2 -Id-Neighborhood_BrkSide+(Neighborhood_Blmngtn+Neighborhood_Blueste+Neighborhood_BrDale+Neighborhood_ClearCr+Neighborhood_CollgCr+Neighborhood_Crawfor+Neighborhood_Edwards+Neighborhood_Gilbert+Neighborhood_IDOTRR+Neighborhood_MeadowV+Neighborhood_Mitchel+Neighborhood_NAmes+Neighborhood_NPkVill+Neighborhood_NridgHt+Neighborhood_NWAmes+Neighborhood_OldTown+Neighborhood_Sawyer+Neighborhood_SawyerW+Neighborhood_Somerst+Neighborhood_StoneBr+Neighborhood_SWISU+Neighborhood_Timber+Neighborhood_Veenker)*GrLivArea, data = one_encode_train_data_q2)
+#Refferences: Neighborhood_BrkSide KitchenQual_TA HouseStyle_SLvl SaleCondition_Partial
+
+
+lm_fit_q2 = lm(SalePrice ~.-SaleCondition_Partial-Id-HouseStyle_SLvl-Neighborhood_BrkSide-KitchenQual_TA+
+                 
+                 (Neighborhood_Blmngtn+Neighborhood_Blueste+Neighborhood_BrDale+Neighborhood_ClearCr+Neighborhood_CollgCr+Neighborhood_Crawfor+Neighborhood_Edwards+Neighborhood_Gilbert+Neighborhood_IDOTRR+Neighborhood_MeadowV+Neighborhood_Mitchel+Neighborhood_NAmes+Neighborhood_NPkVill+Neighborhood_NridgHt+Neighborhood_NWAmes+Neighborhood_OldTown+Neighborhood_Sawyer+Neighborhood_SawyerW+Neighborhood_Somerst+Neighborhood_StoneBr+Neighborhood_SWISU+Neighborhood_Timber+Neighborhood_Veenker+SaleCondition_Abnorml+SaleCondition_AdjLand+SaleCondition_Alloca+SaleCondition_Family+SaleCondition_Normal+HouseStyle_1.5Fin+HouseStyle_1.5Unf+HouseStyle_1Story+HouseStyle_2.5Unf+HouseStyle_2Story+HouseStyle_SFoyer+KitchenQual_Ex+KitchenQual_Fa+KitchenQual_Gd )*GrLivArea +
+                 
+                 (Neighborhood_Blmngtn+Neighborhood_BrDale+Neighborhood_ClearCr+Neighborhood_CollgCr+Neighborhood_Crawfor+Neighborhood_Edwards+Neighborhood_Gilbert+Neighborhood_IDOTRR+Neighborhood_MeadowV+Neighborhood_Mitchel+Neighborhood_NAmes+Neighborhood_NPkVill+Neighborhood_NridgHt+Neighborhood_NWAmes+Neighborhood_OldTown+Neighborhood_Sawyer+Neighborhood_SawyerW+Neighborhood_Somerst+Neighborhood_StoneBr+Neighborhood_SWISU+Neighborhood_Timber+Neighborhood_Veenker+SaleCondition_Abnorml+SaleCondition_AdjLand+SaleCondition_Alloca+SaleCondition_Family+SaleCondition_Normal+HouseStyle_1.5Fin+HouseStyle_1.5Unf+HouseStyle_1Story+HouseStyle_2.5Unf+HouseStyle_2Story+HouseStyle_SFoyer+KitchenQual_Ex+KitchenQual_Fa+KitchenQual_Gd )*GrLivArea2 +
+                 
+                 (Neighborhood_Blmngtn+Neighborhood_BrDale+Neighborhood_ClearCr+Neighborhood_CollgCr+Neighborhood_Crawfor+Neighborhood_Edwards+Neighborhood_Gilbert+Neighborhood_IDOTRR+Neighborhood_MeadowV+Neighborhood_Mitchel+Neighborhood_NAmes+Neighborhood_NPkVill+Neighborhood_NridgHt+Neighborhood_NWAmes+Neighborhood_OldTown+Neighborhood_Sawyer+Neighborhood_SawyerW+Neighborhood_Somerst+Neighborhood_StoneBr+Neighborhood_SWISU+Neighborhood_Timber+Neighborhood_Veenker+SaleCondition_Abnorml+SaleCondition_AdjLand+SaleCondition_Alloca+SaleCondition_Family+SaleCondition_Normal+HouseStyle_1.5Fin+HouseStyle_1.5Unf+HouseStyle_1Story+HouseStyle_2.5Unf+HouseStyle_2Story+HouseStyle_SFoyer+KitchenQual_Ex+KitchenQual_Fa+KitchenQual_Gd )*LotArea + 
+                 
+                 (Neighborhood_Blmngtn+Neighborhood_BrDale+Neighborhood_ClearCr+Neighborhood_CollgCr+Neighborhood_Crawfor+Neighborhood_Edwards+Neighborhood_Gilbert+Neighborhood_IDOTRR+Neighborhood_MeadowV+Neighborhood_Mitchel+Neighborhood_NAmes+Neighborhood_NPkVill+Neighborhood_NridgHt+Neighborhood_NWAmes+Neighborhood_OldTown+Neighborhood_Sawyer+Neighborhood_SawyerW+Neighborhood_Somerst+Neighborhood_StoneBr+Neighborhood_SWISU+Neighborhood_Timber+Neighborhood_Veenker+SaleCondition_Abnorml+SaleCondition_Alloca+SaleCondition_Family+SaleCondition_Normal+HouseStyle_1.5Fin+HouseStyle_1.5Unf+HouseStyle_1Story+HouseStyle_2.5Unf+HouseStyle_2Story+HouseStyle_SFoyer+KitchenQual_Ex+KitchenQual_Fa+KitchenQual_Gd ) * BedroomAbvGr
+               
+               
+               , data = one_encode_train_data_q2)
 
 
 
@@ -208,11 +276,16 @@ plot(stepwise_fit)
 ```{r}
 
 stepwise_predictions = c(predict(stepwise_model, newdata = one_encode_test_data_q2))
-
+one_encode_test_data_q2[1117,]
 
 stepwise_submission = data.frame(Id= one_encode_test_data_q2$Id, SalePrice=stepwise_predictions)
-stepwise_submission
-#write_csv(stepwise_submission, "../kaggleData/stepwiseSelectionPredictions.csv")
+
+write_csv(stepwise_submission, "../kaggleData/stepwiseSelectionPredictions.csv")
+
+nrow(stepwise_submission)
+sum(is.na(stepwise_submission))
+stepwise_submission_na <- stepwise_submission %>% filter_all(any_vars(is.na(.))) 
+stepwise_submission_na
 ```
 
 
@@ -259,13 +332,18 @@ fw_predictions = c(predict(fw_model, newdata = one_encode_test_data_q2))
 
 fw_submission = data.frame(Id= one_encode_test_data_q2$Id, SalePrice=fw_predictions)
 fw_submission
-#write_csv(fw_submission, "../kaggleData/forward SelectionPredictions.csv")
+write_csv(fw_submission, "../kaggleData/forward SelectionPredictions.csv")
+
+nrow(fw_submission)
+sum(is.na(fw_submission))
+fw_submission_na <- fw_submission %>% filter_all(any_vars(is.na(.))) 
+fw_submission_na
 ```
 
 
 
 ```{r message=FALSE, warning=FALSE}
-#Backward Selection
+
 bw_fit = ols_step_backward_p(lm_fit_q2, penter=0.05, details = F)
 bw_fit
 ```
@@ -295,6 +373,8 @@ ols_plot_resid_pot(bw_model)
 ols_pred_rsq(bw_model)
 plot(bw_fit)
 ```
+
+
 ```{r}
 
 bw_predictions = c(predict(bw_model, newdata = one_encode_test_data_q2))
@@ -302,45 +382,51 @@ bw_predictions
 
 bw_submission = data.frame(Id= one_encode_test_data_q2$Id, SalePrice=bw_predictions)
 bw_submission
-#write_csv(bw_submission, "../kaggleData/backwardsSelectionPredictions.csv")
+write_csv(bw_submission, "../kaggleData/backwardsSelectionPredictions.csv")
+
+nrow(bw_submission)
+sum(is.na(bw_submission))
+bw_submission_na <- bw_submission %>% filter_all(any_vars(is.na(.))) 
+bw_submission_na
+
 ```
 
 
 ```{r message=FALSE, warning=FALSE}
-#Backward Selection
+
 custom_fit = ols_step_best_subset(lm_fit_q2,)
 custom_fit
 ```
 
 ```{r}
-custom_model = custom_fit$model
-ols_press(custom_model)
-summary(custom_model)
-confint(custom_model)
+#custom_model = custom_fit$model
+#ols_press(custom_model)
+#summary(custom_model)
+#confint(custom_model)
 ```
 
 
 ```{r}
-ols_plot_cooksd_bar(custom_model)
+#ols_plot_cooksd_bar(custom_model)
 
-custom_model_outliers = ols_plot_cooksd_bar(custom_model, print_plot=F)
-custom_model_outliers
+#custom_model_outliers = ols_plot_cooksd_bar(custom_model, print_plot=F)
+#custom_model_outliers
 
-ols_plot_dffits(custom_model)
-ols_plot_diagnostics(custom_model)
+#ols_plot_dffits(custom_model)
+#ols_plot_diagnostics(custom_model)
 
-ols_plot_resid_fit(custom_model)
-ols_plot_resid_pot(custom_model)
-ols_pred_rsq(custom_model)
-plot(custom_fit)
+#ols_plot_resid_fit(custom_model)
+#ols_plot_resid_pot(custom_model)
+#ols_pred_rsq(custom_model)
+#plot(custom_fit)
 ```
 
 ```{r}
 
-custom_predictions = c(predict(custom_model, newdata = one_encode_test_data_q2))
-custom_predictions
+#custom_predictions = c(predict(custom_model, newdata = one_encode_test_data_q2))
+#custom_predictions
 
-custom_submission = data.frame(Id= one_encode_test_data_q2$Id, SalePrice=custom_predictions)
-custom_submission
+#custom_submission = data.frame(Id= one_encode_test_data_q2$Id, SalePrice=custom_predictions)
+#custom_submission
 #write_csv(custom_submission, "../kaggleData/customSelectionPredictions.csv")
 ```
