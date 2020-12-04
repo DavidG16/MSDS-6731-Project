@@ -39,6 +39,8 @@ data_test$Neighborhood = as.factor(data_test$Neighborhood )
 # add new remodel variable
 data_train$Remodel =ifelse(data_train$YearBuilt==data_train$YearRemodAdd, 0, 1)
 data_test$Remodel =ifelse(data_test$YearBuilt==data_test$YearRemodAdd, 0, 1)
+data_train$GrLivArea2 = data_train$GrLivArea^2
+data_test$GrLivArea2 = data_test$GrLivArea^2
 summary(data_train)
 summary(data_test)
 
@@ -50,9 +52,11 @@ summary(data_test)
 train_data_q1 = data_train %>% select(Id, GrLivArea, Neighborhood, SalePrice ) %>% filter(Neighborhood == "NAmes" | Neighborhood ==  "Edwards" | Neighborhood ==  "BrkSide") %>% droplevels()
 test_data_q1 = data_test  %>% select(Id, GrLivArea, Neighborhood ) %>% filter(Neighborhood == "NAmes" | Neighborhood ==  "Edwards" | Neighborhood ==  "BrkSide") %>% droplevels()
 
-train_data_q2 = data_train %>% select(Id, GrLivArea, Neighborhood, LotArea, YrSold, SaleCondition, HouseStyle, KitchenQual, YearRemodAdd,GarageCars, PoolArea, Fireplaces,BsmtFullBath,BsmtHalfBath,FullBath,HalfBath,BedroomAbvGr,Remodel,OverallQual,  SalePrice)
-train_data_q2$GrLivArea2 = train_data_q2$GrLivArea^2
-train_data_q2 = train_data_q2 %>% select(Id, GrLivArea, Neighborhood, LotArea, YrSold, SaleCondition, HouseStyle, KitchenQual, YearRemodAdd,GarageCars, PoolArea, Fireplaces,BsmtFullBath,BsmtHalfBath,FullBath,HalfBath,BedroomAbvGr,Remodel,OverallQual,  GrLivArea2, SalePrice)
+selected_features_q2 = c("GrLivArea", "Neighborhood", "LotArea", "YrSold", "SaleCondition", "HouseStyle", "KitchenQual", "YearRemodAdd","GarageCars", "PoolArea", "Fireplaces","BsmtFullBath","BsmtHalfBath","FullBath","HalfBath","BedroomAbvGr","Remodel","OverallQual", "GrLivArea2","X1stFlrSF","X2ndFlrSF","PoolArea")
+
+
+
+train_data_q2 = data_train %>% select(Id, selected_features_q2,  SalePrice)
 
 
 
@@ -67,9 +71,7 @@ train_data_q2$HouseStyle = as.factor(train_data_q2$HouseStyle)
 train_data_q2_process = preProcess(train_data_q2[,2:20], method=c("center", "scale"))
 train_data_q2 =  predict(train_data_q2_process, train_data_q2)
 
-test_data_q2 = data_test %>%  select(Id, GrLivArea, Neighborhood, LotArea, YrSold, SaleCondition, HouseStyle, KitchenQual,  YearRemodAdd, GarageCars, PoolArea, Fireplaces,BsmtFullBath,BsmtHalfBath,FullBath,HalfBath,BedroomAbvGr, Remodel,OverallQual)
-test_data_q2$GrLivArea2 = test_data_q2$GrLivArea^2
-test_data_q2 = test_data_q2 %>% select(Id, GrLivArea, Neighborhood, LotArea, YrSold, SaleCondition, HouseStyle, KitchenQual, YearRemodAdd,GarageCars, PoolArea, Fireplaces,BsmtFullBath,BsmtHalfBath,FullBath,HalfBath,BedroomAbvGr,Remodel,OverallQual,  GrLivArea2)
+test_data_q2 = data_test %>%  select(Id, selected_features_q2)
 test_data_q2 =  predict(train_data_q2_process, test_data_q2)
 
 
@@ -103,7 +105,7 @@ test_data_q2
 ```{r}
 
 #look for missing values
-missing.values <- test_data_q2 %>%
+missing.values <- train_data_q2 %>%
     gather(key = "key", value = "val") %>%
     mutate(is.missing = is.na(val)) %>%
     group_by(key, is.missing) %>%
@@ -232,11 +234,9 @@ lm_fit_q2 = lm(SalePrice ~.-SaleCondition_Partial-Id-HouseStyle_SLvl-Neighborhoo
                  
                  (Neighborhood_Blmngtn+Neighborhood_Blueste+Neighborhood_BrDale+Neighborhood_ClearCr+Neighborhood_CollgCr+Neighborhood_Crawfor+Neighborhood_Edwards+Neighborhood_Gilbert+Neighborhood_IDOTRR+Neighborhood_MeadowV+Neighborhood_Mitchel+Neighborhood_NAmes+Neighborhood_NPkVill+Neighborhood_NridgHt+Neighborhood_NWAmes+Neighborhood_OldTown+Neighborhood_Sawyer+Neighborhood_SawyerW+Neighborhood_Somerst+Neighborhood_StoneBr+Neighborhood_SWISU+Neighborhood_Timber+Neighborhood_Veenker+SaleCondition_Abnorml+SaleCondition_AdjLand+SaleCondition_Alloca+SaleCondition_Family+SaleCondition_Normal+HouseStyle_1.5Fin+HouseStyle_1.5Unf+HouseStyle_1Story+HouseStyle_2.5Unf+HouseStyle_2Story+HouseStyle_SFoyer+KitchenQual_Ex+KitchenQual_Fa+KitchenQual_Gd )*GrLivArea +
                  
-                 (Neighborhood_Blmngtn+Neighborhood_BrDale+Neighborhood_ClearCr+Neighborhood_CollgCr+Neighborhood_Crawfor+Neighborhood_Edwards+Neighborhood_Gilbert+Neighborhood_IDOTRR+Neighborhood_MeadowV+Neighborhood_Mitchel+Neighborhood_NAmes+Neighborhood_NPkVill+Neighborhood_NridgHt+Neighborhood_NWAmes+Neighborhood_OldTown+Neighborhood_Sawyer+Neighborhood_SawyerW+Neighborhood_Somerst+Neighborhood_StoneBr+Neighborhood_SWISU+Neighborhood_Timber+Neighborhood_Veenker+SaleCondition_Abnorml+SaleCondition_AdjLand+SaleCondition_Alloca+SaleCondition_Family+SaleCondition_Normal+HouseStyle_1.5Fin+HouseStyle_1.5Unf+HouseStyle_1Story+HouseStyle_2.5Unf+HouseStyle_2Story+HouseStyle_SFoyer+KitchenQual_Ex+KitchenQual_Fa+KitchenQual_Gd )*GrLivArea2 +
+                 (Neighborhood_Blmngtn+Neighborhood_BrDale+Neighborhood_ClearCr+Neighborhood_CollgCr+Neighborhood_Crawfor+Neighborhood_Edwards+Neighborhood_Gilbert+Neighborhood_IDOTRR+Neighborhood_MeadowV+Neighborhood_Mitchel+Neighborhood_NAmes+Neighborhood_NPkVill+Neighborhood_NridgHt+Neighborhood_NWAmes+Neighborhood_OldTown+Neighborhood_Sawyer+Neighborhood_SawyerW+Neighborhood_Somerst+Neighborhood_StoneBr+Neighborhood_SWISU+Neighborhood_Timber+Neighborhood_Veenker+SaleCondition_Abnorml+SaleCondition_AdjLand+SaleCondition_Alloca+SaleCondition_Family+SaleCondition_Normal+HouseStyle_1.5Fin+HouseStyle_1.5Unf+HouseStyle_1Story+HouseStyle_2.5Unf+HouseStyle_2Story+HouseStyle_SFoyer+KitchenQual_Ex+KitchenQual_Fa+KitchenQual_Gd)*GrLivArea2 +
                  
-                 (Neighborhood_Blmngtn+Neighborhood_BrDale+Neighborhood_ClearCr+Neighborhood_CollgCr+Neighborhood_Crawfor+Neighborhood_Edwards+Neighborhood_Gilbert+Neighborhood_IDOTRR+Neighborhood_MeadowV+Neighborhood_Mitchel+Neighborhood_NAmes+Neighborhood_NPkVill+Neighborhood_NridgHt+Neighborhood_NWAmes+Neighborhood_OldTown+Neighborhood_Sawyer+Neighborhood_SawyerW+Neighborhood_Somerst+Neighborhood_StoneBr+Neighborhood_SWISU+Neighborhood_Timber+Neighborhood_Veenker+SaleCondition_Abnorml+SaleCondition_AdjLand+SaleCondition_Alloca+SaleCondition_Family+SaleCondition_Normal+HouseStyle_1.5Fin+HouseStyle_1.5Unf+HouseStyle_1Story+HouseStyle_2.5Unf+HouseStyle_2Story+HouseStyle_SFoyer+KitchenQual_Ex+KitchenQual_Fa+KitchenQual_Gd )*LotArea + 
-                 
-                 (Neighborhood_Blmngtn+Neighborhood_BrDale+Neighborhood_ClearCr+Neighborhood_CollgCr+Neighborhood_Crawfor+Neighborhood_Edwards+Neighborhood_Gilbert+Neighborhood_IDOTRR+Neighborhood_MeadowV+Neighborhood_Mitchel+Neighborhood_NAmes+Neighborhood_NPkVill+Neighborhood_NridgHt+Neighborhood_NWAmes+Neighborhood_OldTown+Neighborhood_Sawyer+Neighborhood_SawyerW+Neighborhood_Somerst+Neighborhood_StoneBr+Neighborhood_SWISU+Neighborhood_Timber+Neighborhood_Veenker+SaleCondition_Abnorml+SaleCondition_Alloca+SaleCondition_Family+SaleCondition_Normal+HouseStyle_1.5Fin+HouseStyle_1.5Unf+HouseStyle_1Story+HouseStyle_2.5Unf+HouseStyle_2Story+HouseStyle_SFoyer+KitchenQual_Ex+KitchenQual_Fa+KitchenQual_Gd ) * BedroomAbvGr
+                 (Neighborhood_Blmngtn+Neighborhood_BrDale+Neighborhood_ClearCr+Neighborhood_CollgCr+Neighborhood_Crawfor+Neighborhood_Edwards+Neighborhood_Gilbert+Neighborhood_IDOTRR+Neighborhood_MeadowV+Neighborhood_Mitchel+Neighborhood_NAmes+Neighborhood_NPkVill+Neighborhood_NridgHt+Neighborhood_NWAmes+Neighborhood_OldTown+Neighborhood_Sawyer+Neighborhood_SawyerW+Neighborhood_Somerst+Neighborhood_StoneBr+Neighborhood_SWISU+Neighborhood_Timber+Neighborhood_Veenker+SaleCondition_Abnorml+SaleCondition_AdjLand+SaleCondition_Alloca+SaleCondition_Family+SaleCondition_Normal+HouseStyle_1.5Fin+HouseStyle_1.5Unf+HouseStyle_1Story+HouseStyle_2.5Unf+HouseStyle_2Story+HouseStyle_SFoyer)*LotArea
                
                
                , data = one_encode_train_data_q2)
