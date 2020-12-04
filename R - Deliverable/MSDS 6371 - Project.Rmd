@@ -236,7 +236,9 @@ lm_fit_q2 = lm(SalePrice ~.-SaleCondition_Partial-Id-HouseStyle_SLvl-Neighborhoo
                  
                  (Neighborhood_Blmngtn+Neighborhood_BrDale+Neighborhood_ClearCr+Neighborhood_CollgCr+Neighborhood_Crawfor+Neighborhood_Edwards+Neighborhood_Gilbert+Neighborhood_IDOTRR+Neighborhood_MeadowV+Neighborhood_Mitchel+Neighborhood_NAmes+Neighborhood_NPkVill+Neighborhood_NridgHt+Neighborhood_NWAmes+Neighborhood_OldTown+Neighborhood_Sawyer+Neighborhood_SawyerW+Neighborhood_Somerst+Neighborhood_StoneBr+Neighborhood_SWISU+Neighborhood_Timber+Neighborhood_Veenker+SaleCondition_Abnorml+SaleCondition_AdjLand+SaleCondition_Alloca+SaleCondition_Family+SaleCondition_Normal+HouseStyle_1.5Fin+HouseStyle_1.5Unf+HouseStyle_1Story+HouseStyle_2.5Unf+HouseStyle_2Story+HouseStyle_SFoyer+KitchenQual_Ex+KitchenQual_Fa+KitchenQual_Gd)*GrLivArea2 +
                  
-                 (Neighborhood_Blmngtn+Neighborhood_BrDale+Neighborhood_ClearCr+Neighborhood_CollgCr+Neighborhood_Crawfor+Neighborhood_Edwards+Neighborhood_Gilbert+Neighborhood_IDOTRR+Neighborhood_MeadowV+Neighborhood_Mitchel+Neighborhood_NAmes+Neighborhood_NPkVill+Neighborhood_NridgHt+Neighborhood_NWAmes+Neighborhood_OldTown+Neighborhood_Sawyer+Neighborhood_SawyerW+Neighborhood_Somerst+Neighborhood_StoneBr+Neighborhood_SWISU+Neighborhood_Timber+Neighborhood_Veenker+SaleCondition_Abnorml+SaleCondition_AdjLand+SaleCondition_Alloca+SaleCondition_Family+SaleCondition_Normal+HouseStyle_1.5Fin+HouseStyle_1.5Unf+HouseStyle_1Story+HouseStyle_2.5Unf+HouseStyle_2Story+HouseStyle_SFoyer)*LotArea
+                 (Neighborhood_Blmngtn+Neighborhood_BrDale+Neighborhood_ClearCr+Neighborhood_CollgCr+Neighborhood_Crawfor+Neighborhood_Edwards+Neighborhood_Gilbert+Neighborhood_IDOTRR+Neighborhood_MeadowV+Neighborhood_Mitchel+Neighborhood_NAmes+Neighborhood_NPkVill+Neighborhood_NridgHt+Neighborhood_NWAmes+Neighborhood_OldTown+Neighborhood_Sawyer+Neighborhood_SawyerW+Neighborhood_Somerst+Neighborhood_StoneBr+Neighborhood_SWISU+Neighborhood_Timber+Neighborhood_Veenker+SaleCondition_Abnorml+SaleCondition_AdjLand+SaleCondition_Alloca+SaleCondition_Family+SaleCondition_Normal+HouseStyle_1.5Fin+HouseStyle_1.5Unf+HouseStyle_1Story+HouseStyle_2.5Unf+HouseStyle_2Story+HouseStyle_SFoyer)*LotArea + 
+                
+                 (Neighborhood_Blmngtn+Neighborhood_BrDale+Neighborhood_ClearCr+Neighborhood_CollgCr+Neighborhood_Crawfor+Neighborhood_Edwards+Neighborhood_Gilbert+Neighborhood_IDOTRR+Neighborhood_MeadowV+Neighborhood_Mitchel+Neighborhood_NAmes+Neighborhood_NPkVill+Neighborhood_NridgHt+Neighborhood_NWAmes+Neighborhood_OldTown+Neighborhood_Sawyer+Neighborhood_SawyerW+Neighborhood_Somerst+Neighborhood_StoneBr+Neighborhood_SWISU+Neighborhood_Timber+Neighborhood_Veenker+SaleCondition_Abnorml+SaleCondition_Alloca+SaleCondition_Family+SaleCondition_Normal+HouseStyle_1.5Fin+HouseStyle_1.5Unf+HouseStyle_1Story+HouseStyle_2.5Unf+HouseStyle_2Story+HouseStyle_SFoyer+KitchenQual_Ex+KitchenQual_Fa+KitchenQual_Gd ) * BedroomAbvGr
                
                
                , data = one_encode_train_data_q2)
@@ -364,6 +366,7 @@ bw_fit
 ```{r}
 bw_model = bw_fit$model
 ols_press(bw_model)
+formatC(ols_press(bw_model), format = "e", digits = 6)
 summary(bw_model)
 confint(bw_model)
 ```
@@ -401,43 +404,289 @@ bw_submission_na <- bw_submission %>% filter_all(any_vars(is.na(.)))
 bw_submission_na
 
 ```
+```{r}
+custom_train_data_exclude
 
+```
+
+
+```{r}
+# outliers list
+ outliers_forward = c(4, 54,   59,   66,   67,   70,   94,  119,  121,  138,  152,  154,  164,  179,  186,  209,  219,  239,  250,  252,  262,  305,  314,  321,  322,  331,  336,  337,  349,  350,  363,  384,  385,  401,  427,  439,  441,  474,  478,  497,  524,  528,  530,  560,  567,  569,  582,  584,
+586,  589,  592,  598,  608,  622,  633,  636,  641,  643,  656,  662,  665,  682,  686,  689,  692,  703,  713,  725,  745,  770,  775,  779,  799,  804,  811,  813,  823,  826,  841,  876,  878,  886,  898,  899,  926,  940,  962,  971, 1018, 1025, 1032, 1045, 1047, 1049, 1063, 1066,
+1069, 1128, 1143, 1156, 1169, 1170, 1174, 1176, 1182, 1183, 1217, 1268, 1269, 1285, 1299, 1311, 1323, 1325, 1327, 1329, 1360, 1387, 1389, 1397, 1416, 1424, 1441)
+
+
+custom_train_data = data_train[!(data_train$Id %in% outliers_forward), ]
+
+#custom_train_data = data_train
+
+
+selected_features_q2 = c("GrLivArea", "Neighborhood", "LotArea", "YrSold", "SaleCondition", "HouseStyle", "KitchenQual", "YearRemodAdd","GarageCars", "PoolArea", "Fireplaces","BsmtFullBath","BsmtHalfBath","FullBath","HalfBath","BedroomAbvGr","Remodel","OverallQual", "GrLivArea2","X1stFlrSF","X2ndFlrSF","PoolArea")
+
+
+
+custom_train_data = custom_train_data %>% select(Id, selected_features_q2,  SalePrice)
+
+
+
+
+
+# 2.5Fin does not exist in test data so changing it to 1.5Unf
+custom_train_data$HouseStyle = as.character(custom_train_data$HouseStyle)
+custom_train_data = custom_train_data %>%   mutate_at(vars(HouseStyle) ,     ~ifelse(.x=="2.5Fin","1.5Unf",.x  ))
+
+custom_train_data$HouseStyle = as.factor(custom_train_data$HouseStyle)
+
+custom_train_data_process = preProcess(custom_train_data[,2:20], method=c("center", "scale"))
+custom_train_data =  predict(custom_train_data_process, custom_train_data)
+
+custom_test_data = data_test %>%  select(Id, selected_features_q2)
+custom_test_data =  predict(custom_train_data_process, test_data_q2)
+
+
+
+
+
+custom_test_data$KitchenQual = as.character(custom_test_data$KitchenQual)
+custom_test_data = custom_test_data %>%   mutate_at(vars(KitchenQual) ,     ~ifelse(is.na(.x),"Ex",.x  ))
+custom_test_data$KitchenQual = as.factor(custom_test_data$KitchenQual)
+
+# Inpute = NA in test data
+custom_test_data= custom_test_data %>% mutate_at(vars(GarageCars),~ifelse(is.na(.x), median(.x, na.rm = TRUE), .x))
+custom_test_data= custom_test_data %>% mutate_at(vars(BsmtFullBath),~ifelse(is.na(.x), median(.x, na.rm = TRUE), .x))
+custom_test_data= custom_test_data %>% mutate_at(vars(BsmtHalfBath),~ifelse(is.na(.x), median(.x, na.rm = TRUE), .x))
+
+
+
+
+one_encode_custom_train_data=  one_hot(as.data.table(custom_train_data, dropUnusedLevels=TRUE))
+
+one_encode_custom_test_data =  one_hot(as.data.table(custom_test_data, dropUnusedLevels=TRUE))
+
+
+
+
+
+
+
+
+#Refferences: Neighborhood_BrkSide KitchenQual_TA HouseStyle_SLvl SaleCondition_Partial
+
+
+lm_fit_custom = lm(SalePrice ~.-SaleCondition_Partial-Id-HouseStyle_SLvl-Neighborhood_BrkSide-KitchenQual_TA+
+                 
+                 (Neighborhood_Blmngtn+Neighborhood_Blueste+Neighborhood_BrDale+Neighborhood_ClearCr+Neighborhood_CollgCr+Neighborhood_Crawfor+Neighborhood_Edwards+Neighborhood_Gilbert+Neighborhood_IDOTRR+Neighborhood_MeadowV+Neighborhood_Mitchel+Neighborhood_NAmes+Neighborhood_NPkVill+Neighborhood_NridgHt+Neighborhood_NWAmes+Neighborhood_OldTown+Neighborhood_Sawyer+Neighborhood_SawyerW+Neighborhood_Somerst+Neighborhood_StoneBr+Neighborhood_SWISU+Neighborhood_Timber+Neighborhood_Veenker+SaleCondition_Abnorml+SaleCondition_AdjLand+SaleCondition_Alloca+SaleCondition_Family+SaleCondition_Normal+HouseStyle_1.5Fin+HouseStyle_1.5Unf+HouseStyle_1Story+HouseStyle_2.5Unf+HouseStyle_2Story+HouseStyle_SFoyer+KitchenQual_Ex+KitchenQual_Fa+KitchenQual_Gd )*GrLivArea +
+                 
+                 (Neighborhood_Blmngtn+Neighborhood_BrDale+Neighborhood_ClearCr+Neighborhood_CollgCr+Neighborhood_Crawfor+Neighborhood_Edwards+Neighborhood_Gilbert+Neighborhood_IDOTRR+Neighborhood_MeadowV+Neighborhood_Mitchel+Neighborhood_NAmes+Neighborhood_NPkVill+Neighborhood_NridgHt+Neighborhood_NWAmes+Neighborhood_OldTown+Neighborhood_Sawyer+Neighborhood_SawyerW+Neighborhood_Somerst+Neighborhood_StoneBr+Neighborhood_SWISU+Neighborhood_Timber+Neighborhood_Veenker+SaleCondition_Abnorml+SaleCondition_AdjLand+SaleCondition_Alloca+SaleCondition_Family+SaleCondition_Normal+HouseStyle_1.5Fin+HouseStyle_1.5Unf+HouseStyle_1Story+HouseStyle_2.5Unf+HouseStyle_2Story+HouseStyle_SFoyer+KitchenQual_Ex+KitchenQual_Fa+KitchenQual_Gd)*GrLivArea2 +
+                 
+                 (Neighborhood_Blmngtn+Neighborhood_BrDale+Neighborhood_ClearCr+Neighborhood_CollgCr+Neighborhood_Crawfor+Neighborhood_Edwards+Neighborhood_Gilbert+Neighborhood_IDOTRR+Neighborhood_MeadowV+Neighborhood_Mitchel+Neighborhood_NAmes+Neighborhood_NPkVill+Neighborhood_NridgHt+Neighborhood_NWAmes+Neighborhood_OldTown+Neighborhood_Sawyer+Neighborhood_SawyerW+Neighborhood_Somerst+Neighborhood_StoneBr+Neighborhood_SWISU+Neighborhood_Timber+Neighborhood_Veenker+SaleCondition_Abnorml+SaleCondition_AdjLand+SaleCondition_Alloca+SaleCondition_Family+SaleCondition_Normal+HouseStyle_1.5Fin+HouseStyle_1.5Unf+HouseStyle_1Story+HouseStyle_2.5Unf+HouseStyle_2Story+HouseStyle_SFoyer)*LotArea + 
+                
+                 (Neighborhood_Blmngtn+Neighborhood_BrDale+Neighborhood_ClearCr+Neighborhood_CollgCr+Neighborhood_Crawfor+Neighborhood_Edwards+Neighborhood_Gilbert+Neighborhood_IDOTRR+Neighborhood_MeadowV+Neighborhood_Mitchel+Neighborhood_NAmes+Neighborhood_NPkVill+Neighborhood_NridgHt+Neighborhood_NWAmes+Neighborhood_OldTown+Neighborhood_Sawyer+Neighborhood_SawyerW+Neighborhood_Somerst+Neighborhood_StoneBr+Neighborhood_SWISU+Neighborhood_Timber+Neighborhood_Veenker+SaleCondition_Abnorml+SaleCondition_Alloca+SaleCondition_Family+SaleCondition_Normal+HouseStyle_1.5Fin+HouseStyle_1.5Unf+HouseStyle_1Story+HouseStyle_2.5Unf+HouseStyle_2Story+HouseStyle_SFoyer+KitchenQual_Ex+KitchenQual_Fa+KitchenQual_Gd ) * BedroomAbvGr
+               
+               
+               , data = one_encode_custom_train_data)
+
+
+
+summary(lm_fit_custom)
+ols_press(lm_fit_custom)
+
+```
+
+
+```{r}
+
+one_encode_custom_train_data
+```
 
 ```{r message=FALSE, warning=FALSE}
 
-custom_fit = ols_step_best_subset(lm_fit_q2,)
+custom_fit = ols_step_forward_p(lm_fit_custom, penter=0.05, details = F)
 custom_fit
 ```
 
 ```{r}
-#custom_model = custom_fit$model
-#ols_press(custom_model)
-#summary(custom_model)
-#confint(custom_model)
+custom_model = custom_fit$model
+ols_press(custom_model)
+formatC(ols_press(custom_model), format = "e", digits = 6)
+summary(custom_model)
+confint(custom_model)
 ```
 
 
 ```{r}
-#ols_plot_cooksd_bar(custom_model)
+ols_plot_cooksd_bar(custom_model)
 
-#custom_model_outliers = ols_plot_cooksd_bar(custom_model, print_plot=F)
-#custom_model_outliers
+custom_model_outliers = ols_plot_cooksd_bar(custom_model, print_plot=F)
+custom_model_outliers
 
-#ols_plot_dffits(custom_model)
-#ols_plot_diagnostics(custom_model)
+ols_plot_dffits(custom_model)
+ols_plot_diagnostics(custom_model)
 
-#ols_plot_resid_fit(custom_model)
-#ols_plot_resid_pot(custom_model)
-#ols_pred_rsq(custom_model)
-#plot(custom_fit)
+ols_plot_resid_fit(custom_model)
+ols_plot_resid_pot(custom_model)
+ols_pred_rsq(custom_model)
+plot(custom_fit)
+```
+```{r}
+enco
+custom_model_outliers$outliers$observation
+
 ```
 
 ```{r}
 
-#custom_predictions = c(predict(custom_model, newdata = one_encode_test_data_q2))
-#custom_predictions
+custom_predictions = c(predict(custom_model, newdata = one_encode_custom_test_data))
+custom_predictions
 
-#custom_submission = data.frame(Id= one_encode_test_data_q2$Id, SalePrice=custom_predictions)
-#custom_submission
-#write_csv(custom_submission, "../kaggleData/customSelectionPredictions.csv")
+custom_submission = data.frame(Id= one_encode_custom_test_data$Id, SalePrice=custom_predictions)
+custom_submission
+write_csv(custom_submission, "../kaggleData/customSelection1Predictions.csv")
+```
+
+
+```{r}
+
+one_encode_custom_train_data_model2 = one_encode_custom_train_data
+one_encode_custom_train_data_model2 =  one_encode_custom_train_data %>% mutate( index=row_number())
+                                                              
+
+
+custom_model_1_outliers = c(4,    6,   13,   28,   30,   55,   96,  106,  107,  135,  143,  157,  163,  183,  208,  215,  296,  302,  304,  347,  354,  357,  375,  384,  385,  387,  415,  421,  426,  434,  437,  443,  444,  464,  498,  504,  520,  525,  556,  587,  600,  603,  616,  618,  628,  636,  641,  652,
+ 661,  671,  679,  697,  736,  751,  770,  786,  813,  842,  877,  886,  887,  900,  903,  932,  941,  946,  950,  952,  976, 1001, 1004, 1030, 1033, 1047, 1058, 1064, 1065, 1069, 1079, 1117, 1120, 1124, 1133, 1137, 1138, 1144, 1147, 1173, 1204, 1229, 1234, 1240, 1245, 1265, 1267, 1270,
+1277, 1284, 1311)
+
+
+
+one_encode_custom_train_data_model2 = one_encode_custom_train_data_model2[!(one_encode_custom_train_data_model2$index %in% custom_model_1_outliers), ]
+one_encode_custom_train_data_model2
+
+
+#get original data again without all the outliers. This way we can scale it using only the values we will utilize, we do this to avoid data leaking
+final_one_encode_custom_train_data_model2 = data_train[(data_train$Id %in% one_encode_custom_train_data_model2$Id), ]
+final_one_encode_custom_train_data_model2
+```
+```{r}
+# do all the data preprossesing again
+
+final_one_encode_custom_train_data_model2 = final_one_encode_custom_train_data_model2 %>% select(Id, selected_features_q2,  SalePrice)
+
+
+
+
+
+# 2.5Fin does not exist in test data so changing it to 1.5Unf
+final_one_encode_custom_train_data_model2$HouseStyle = as.character(final_one_encode_custom_train_data_model2$HouseStyle)
+final_one_encode_custom_train_data_model2 = final_one_encode_custom_train_data_model2 %>%   mutate_at(vars(HouseStyle) ,     ~ifelse(.x=="2.5Fin","1.5Unf",.x  ))
+
+final_one_encode_custom_train_data_model2$HouseStyle = as.factor(final_one_encode_custom_train_data_model2$HouseStyle)
+
+custom2_train_data_process = preProcess(final_one_encode_custom_train_data_model2[,2:20], method=c("center", "scale"))
+final_one_encode_custom_train_data_model2 =  predict(custom2_train_data_process, final_one_encode_custom_train_data_model2)
+
+final_custom_test_data = data_test %>%  select(Id, selected_features_q2)
+final_custom_test_data =  predict(custom2_train_data_process, final_custom_test_data)
+
+
+
+
+
+final_custom_test_data$KitchenQual = as.character(final_custom_test_data$KitchenQual)
+final_custom_test_data = custom_test_data %>%   mutate_at(vars(KitchenQual) ,     ~ifelse(is.na(.x),"Ex",.x  ))
+final_custom_test_data$KitchenQual = as.factor(final_custom_test_data$KitchenQual)
+
+# Inpute = NA in test data
+final_custom_test_data= final_custom_test_data %>% mutate_at(vars(GarageCars),~ifelse(is.na(.x), median(.x, na.rm = TRUE), .x))
+final_custom_test_data= final_custom_test_data %>% mutate_at(vars(BsmtFullBath),~ifelse(is.na(.x), median(.x, na.rm = TRUE), .x))
+final_custom_test_data= final_custom_test_data %>% mutate_at(vars(BsmtHalfBath),~ifelse(is.na(.x), median(.x, na.rm = TRUE), .x))
+
+
+
+
+one_encode_custom_train_data2=  one_hot(as.data.table(final_one_encode_custom_train_data_model2, dropUnusedLevels=TRUE))
+
+one_encode_custom_test_data2 =  one_hot(as.data.table(final_custom_test_data, dropUnusedLevels=TRUE))
+
+
+
+
+
+
+
+
+#Refferences: Neighborhood_BrkSide KitchenQual_TA HouseStyle_SLvl SaleCondition_Partial
+# Manual exclusion:
+# take away PoolArea due to 0 variance warning
+#SaleCondition_AdjLand:GrLivArea2           NA         NA      NA       NA    
+#SaleCondition_Alloca:GrLivArea2            NA         NA      NA       NA 
+#LotArea:SaleCondition_AdjLand              NA         NA      NA       NA    
+#LotArea:SaleCondition_Alloca               NA         NA      NA       NA    
+#SaleCondition_Alloca:BedroomAbvGr          NA         NA      NA       NA   
+
+  
+
+lm_fit_custom2 = lm(SalePrice ~.-SaleCondition_Partial-Id-HouseStyle_SLvl-Neighborhood_BrkSide-KitchenQual_TA-PoolArea+
+                 
+                 (Neighborhood_Blmngtn+Neighborhood_Blueste+Neighborhood_BrDale+Neighborhood_ClearCr+Neighborhood_CollgCr+Neighborhood_Crawfor+Neighborhood_Edwards+Neighborhood_Gilbert+Neighborhood_IDOTRR+Neighborhood_MeadowV+Neighborhood_Mitchel+Neighborhood_NAmes+Neighborhood_NPkVill+Neighborhood_NridgHt+Neighborhood_NWAmes+Neighborhood_OldTown+Neighborhood_Sawyer+Neighborhood_SawyerW+Neighborhood_Somerst+Neighborhood_StoneBr+Neighborhood_SWISU+Neighborhood_Timber+Neighborhood_Veenker+SaleCondition_Abnorml+SaleCondition_Family+SaleCondition_Normal+HouseStyle_1.5Fin+HouseStyle_1.5Unf+HouseStyle_1Story+HouseStyle_2.5Unf+HouseStyle_2Story+HouseStyle_SFoyer+KitchenQual_Ex+KitchenQual_Fa+KitchenQual_Gd )*GrLivArea +
+                 
+                 (Neighborhood_Blmngtn+Neighborhood_BrDale+Neighborhood_ClearCr+Neighborhood_CollgCr+Neighborhood_Crawfor+Neighborhood_Edwards+Neighborhood_Gilbert+Neighborhood_IDOTRR+Neighborhood_MeadowV+Neighborhood_Mitchel+Neighborhood_NAmes+Neighborhood_NPkVill+Neighborhood_NridgHt+Neighborhood_NWAmes+Neighborhood_OldTown+Neighborhood_Sawyer+Neighborhood_SawyerW+Neighborhood_Somerst+Neighborhood_StoneBr+Neighborhood_SWISU+Neighborhood_Timber+Neighborhood_Veenker+SaleCondition_Abnorml+SaleCondition_AdjLand+SaleCondition_Family+SaleCondition_Normal+HouseStyle_1.5Fin+HouseStyle_1.5Unf+HouseStyle_1Story+HouseStyle_2.5Unf+HouseStyle_2Story+HouseStyle_SFoyer+KitchenQual_Ex+KitchenQual_Fa+KitchenQual_Gd)*GrLivArea2 +
+                 
+                 (Neighborhood_Blmngtn+Neighborhood_BrDale+Neighborhood_ClearCr+Neighborhood_CollgCr+Neighborhood_Crawfor+Neighborhood_Edwards+Neighborhood_Gilbert+Neighborhood_IDOTRR+Neighborhood_MeadowV+Neighborhood_Mitchel+Neighborhood_NAmes+Neighborhood_NPkVill+Neighborhood_NridgHt+Neighborhood_NWAmes+Neighborhood_OldTown+Neighborhood_Sawyer+Neighborhood_SawyerW+Neighborhood_Somerst+Neighborhood_StoneBr+Neighborhood_SWISU+Neighborhood_Timber+Neighborhood_Veenker+SaleCondition_Abnorml++SaleCondition_Family+SaleCondition_Normal+HouseStyle_1.5Fin+HouseStyle_1.5Unf+HouseStyle_1Story+HouseStyle_2.5Unf+HouseStyle_2Story+HouseStyle_SFoyer)*LotArea + 
+                
+                 (Neighborhood_Blmngtn+Neighborhood_BrDale+Neighborhood_ClearCr+Neighborhood_CollgCr+Neighborhood_Crawfor+Neighborhood_Edwards+Neighborhood_Gilbert+Neighborhood_IDOTRR+Neighborhood_MeadowV+Neighborhood_Mitchel+Neighborhood_NAmes+Neighborhood_NPkVill+Neighborhood_NridgHt+Neighborhood_NWAmes+Neighborhood_OldTown+Neighborhood_Sawyer+Neighborhood_SawyerW+Neighborhood_Somerst+Neighborhood_StoneBr+Neighborhood_SWISU+Neighborhood_Timber+Neighborhood_Veenker+SaleCondition_Abnorml+SaleCondition_Family+SaleCondition_Normal+HouseStyle_1.5Fin+HouseStyle_1.5Unf+HouseStyle_1Story+HouseStyle_2.5Unf+HouseStyle_2Story+HouseStyle_SFoyer+KitchenQual_Ex+KitchenQual_Fa+KitchenQual_Gd ) * BedroomAbvGr
+               
+               
+               , data = one_encode_custom_train_data2)
+
+
+
+summary(lm_fit_custom2)
+ols_press(lm_fit_custom2)
+
+```
+```{r message=FALSE, warning=FALSE}
+
+custom_fit2 = ols_step_forward_p(lm_fit_custom2, penter=0.05, details = F)
+custom_fit2
+```
+
+```{r}
+custom_model2 = custom_fit2$model
+ols_press(custom_model2)
+formatC(ols_press(custom_model2), format = "e", digits = 6)
+summary(custom_model2)
+confint(custom_model2)
+```
+
+
+```{r}
+ols_plot_cooksd_bar(custom_model2)
+
+custom_model_outliers2 = ols_plot_cooksd_bar(custom_model2, print_plot=F)
+custom_model_outliers2
+
+ols_plot_dffits(custom_model2)
+ols_plot_diagnostics(custom_model2)
+
+ols_plot_resid_fit(custom_model2)
+ols_plot_resid_pot(custom_model2)
+ols_pred_rsq(custom_model2)
+plot(custom_fit2)
+```
+
+```{r}
+
+custom_model_outliers2$outliers$observation
+
+```
+
+```{r}
+
+custom_predictions2 = c(predict(custom_model2, newdata = one_encode_custom_test_data2))
+custom_predictions2
+
+custom_predictions2 = data.frame(Id= one_encode_custom_test_data2$Id, SalePrice=custom_predictions2)
+custom_predictions2
+write_csv(custom_predictions2, "../kaggleData/customSelection2Predictions.csv")
 ```
