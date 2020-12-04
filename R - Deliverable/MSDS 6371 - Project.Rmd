@@ -19,6 +19,8 @@ library(car)
 library(data.table)
 library(mltools)
 library(olsrr)
+library(scales)
+library(caret)
 
 # options
 #options(scipen = 999)
@@ -50,6 +52,7 @@ test_data_q1 = data_test  %>% select(Id, GrLivArea, Neighborhood ) %>% filter(Ne
 
 train_data_q2 = data_train %>% select(Id, GrLivArea, Neighborhood, LotArea, YrSold, SaleCondition, HouseStyle, KitchenQual, YearRemodAdd,GarageCars, PoolArea, Fireplaces,BsmtFullBath,BsmtHalfBath,FullBath,HalfBath,BedroomAbvGr,Remodel,OverallQual,  SalePrice)
 train_data_q2$GrLivArea2 = train_data_q2$GrLivArea^2
+train_data_q2 = train_data_q2 %>% select(Id, GrLivArea, Neighborhood, LotArea, YrSold, SaleCondition, HouseStyle, KitchenQual, YearRemodAdd,GarageCars, PoolArea, Fireplaces,BsmtFullBath,BsmtHalfBath,FullBath,HalfBath,BedroomAbvGr,Remodel,OverallQual,  GrLivArea2, SalePrice)
 
 
 
@@ -61,12 +64,13 @@ train_data_q2 = train_data_q2 %>%   mutate_at(vars(HouseStyle) ,     ~ifelse(.x=
 
 train_data_q2$HouseStyle = as.factor(train_data_q2$HouseStyle)
 
-
-
+train_data_q2_process = preProcess(train_data_q2[,2:20], method=c("center", "scale"))
+train_data_q2 =  predict(train_data_q2_process, train_data_q2)
 
 test_data_q2 = data_test %>%  select(Id, GrLivArea, Neighborhood, LotArea, YrSold, SaleCondition, HouseStyle, KitchenQual,  YearRemodAdd, GarageCars, PoolArea, Fireplaces,BsmtFullBath,BsmtHalfBath,FullBath,HalfBath,BedroomAbvGr, Remodel,OverallQual)
 test_data_q2$GrLivArea2 = test_data_q2$GrLivArea^2
-
+test_data_q2 = test_data_q2 %>% select(Id, GrLivArea, Neighborhood, LotArea, YrSold, SaleCondition, HouseStyle, KitchenQual, YearRemodAdd,GarageCars, PoolArea, Fireplaces,BsmtFullBath,BsmtHalfBath,FullBath,HalfBath,BedroomAbvGr,Remodel,OverallQual,  GrLivArea2)
+test_data_q2 =  predict(train_data_q2_process, test_data_q2)
 
 
 
@@ -87,7 +91,14 @@ summary(test_data_q2)
 #nrow(test_data_q2)
 unique(train_data_q2$HouseStyle)
 unique(test_data_q2$HouseStyle)
+
 ```
+
+```{r}
+train_data_q2
+test_data_q2
+```
+
 
 ```{r}
 
