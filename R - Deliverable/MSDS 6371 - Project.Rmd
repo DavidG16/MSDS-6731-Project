@@ -33,9 +33,16 @@ data_train= read_csv("../Data/train.csv")
 data_test = read_csv("../Data/test.csv")
 #Convert <chr> to <fctr>
 data_train = as.data.frame(unclass(data_train))
-data_train$Neighborhood = as.factor(data_train$Neighborhood )
+data_train$Neighborhood = as.factor(data_train$Neighborhood)
+data_train$HouseStyle = as.factor(data_train$HouseStyle)
+data_train$KitchenQual = as.factor(data_train$KitchenQual)
+data_train$SaleCondition = as.factor(data_train$SaleCondition)
+
 data_test = as.data.frame(unclass(data_test))
 data_test$Neighborhood = as.factor(data_test$Neighborhood )
+data_test$HouseStyle = as.factor(data_test$HouseStyle)
+data_test$KitchenQual = as.factor(data_test$KitchenQual)
+data_test$SaleCondition = as.factor(data_test$SaleCondition)
 # add new remodel variable
 data_train$Remodel =ifelse(data_train$YearBuilt==data_train$YearRemodAdd, 0, 1)
 data_test$Remodel =ifelse(data_test$YearBuilt==data_test$YearRemodAdd, 0, 1)
@@ -43,6 +50,7 @@ data_train$GrLivArea2 = data_train$GrLivArea^2
 data_test$GrLivArea2 = data_test$GrLivArea^2
 summary(data_train)
 summary(data_test)
+head(data_train)
 
 ```
 
