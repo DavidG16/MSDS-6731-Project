@@ -593,7 +593,7 @@ final_custom_test_data =  predict(custom2_train_data_process, final_custom_test_
 
 
 final_custom_test_data$KitchenQual = as.character(final_custom_test_data$KitchenQual)
-final_custom_test_data = custom_test_data %>%   mutate_at(vars(KitchenQual) ,     ~ifelse(is.na(.x),"Ex",.x  ))
+final_custom_test_data = final_custom_test_data %>%   mutate_at(vars(KitchenQual) ,     ~ifelse(is.na(.x),"Ex",.x  ))
 final_custom_test_data$KitchenQual = as.factor(final_custom_test_data$KitchenQual)
 
 # Inpute = NA in test data
@@ -684,9 +684,16 @@ custom_model_outliers2$outliers$observation
 ```{r}
 
 custom_predictions2 = c(predict(custom_model2, newdata = one_encode_custom_test_data2))
-custom_predictions2
+
 
 custom_predictions2 = data.frame(Id= one_encode_custom_test_data2$Id, SalePrice=custom_predictions2)
 custom_predictions2
 write_csv(custom_predictions2, "../kaggleData/customSelection2Predictions.csv")
+```
+```{r}
+one_encode_custom_test_data2
+```
+```{r}
+custom_model2
+
 ```
