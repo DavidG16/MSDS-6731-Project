@@ -377,7 +377,7 @@ stepwise_submission = data.frame(Id= one_encode_test_data_q2$Id, SalePrice=stepw
 nrow(stepwise_submission)
 sum(is.na(stepwise_submission))
 stepwise_submission_na <- stepwise_submission %>% filter_all(any_vars(is.na(.))) 
-stepwise_submission_na
+#stepwise_submission_na
 ```
 ```{r}
 step_wise_vif = VIF(stepwise_model)
@@ -432,7 +432,7 @@ fw_submission
 nrow(fw_submission)
 sum(is.na(fw_submission))
 fw_submission_na <- fw_submission %>% filter_all(any_vars(is.na(.))) 
-fw_submission_na
+#fw_submission_na
 ```
 ```{r}
 fw_vif = VIF(fw_model)
@@ -497,10 +497,6 @@ c(bw_vif)
 ```
 
 
-```{r}
-custom_train_data
-train_data_q2
-```
 
 
 ```{r}
@@ -588,8 +584,11 @@ ols_press(lm_fit_custom)
 ```
 
 ```{r}
-#custom_train_data
 
+custom_train_data_outliers = data_train[(data_train$Id %in% outliers_forward), ]
+#custom_train_data_outliers
+hist(custom_train_data_outliers$SalePrice)
+hist(one_encode_custom_train_data$SalePrice)
 ```
 
 ```{r message=FALSE, warning=FALSE}
@@ -597,7 +596,11 @@ ols_press(lm_fit_custom)
 custom_fit = ols_step_forward_p(lm_fit_custom, penter=0.05, details = F)
 custom_fit
 ```
+```{r}
+outliers_forward
 
+
+```
 ```{r}
 custom_model = custom_fit$model
 ols_press(custom_model)
@@ -629,10 +632,10 @@ custom_model_outliers$outliers$observation
 ```{r}
 
 custom_predictions = c(predict(custom_model, newdata = one_encode_custom_test_data))
-custom_predictions
+#custom_predictions
 
 custom_submission = data.frame(Id= one_encode_custom_test_data$Id, SalePrice=custom_predictions)
-custom_submission
+#custom_submission
 #write_csv(custom_submission, "../kaggleData/customSelection3Predictions.csv")
 ```
 
@@ -644,7 +647,7 @@ c(custom1_vif)
 
 
 ```{r}
-one_encode_custom_train_data_model2
+#one_encode_custom_train_data_model2
 
 ```
 
@@ -655,7 +658,7 @@ one_encode_custom_train_data_model2
 one_encode_custom_train_data_model2 = one_encode_custom_train_data
 
 one_encode_custom_train_data_model2$index = seq.int(nrow(one_encode_custom_train_data_model2))
-one_encode_custom_train_data_model2
+#one_encode_custom_train_data_model2
 
 
 
@@ -664,12 +667,13 @@ one_encode_custom_train_data_model2
 #
 #
  one_encode_custom_train_data_model2 = one_encode_custom_train_data_model2[!(one_encode_custom_train_data_model2$index %in% custom_model_1_outliers), ]
- one_encode_custom_train_data_model2
+
+ # one_encode_custom_train_data_model2
 #
 #
 #get original data again without all the outliers. This way we can scale it using only the values we will utilize, we do this to avoid data leaking
  final_one_encode_custom_train_data_model2 = data_train[(data_train$Id %in% one_encode_custom_train_data_model2$Id), ]
- final_one_encode_custom_train_data_model2
+ #final_one_encode_custom_train_data_model2
 ```
 
 ```{r}
